@@ -1,5 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Register Yourself For Little Lottery</h2>
+<h1>Register For Little Lottery</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <table>
+        <tr>
+            <td>{{ form.name.label }}</td>
+            <td>{{ form.name() }}</td>
+            <td>
+            {% for error in form.name.errors %}{{ error }}{% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <td>{{ form.email.label }}</td>
+            <td>{{ form.email() }}</td>
+            <td>
+            {% for error in form.email.errors %}{{ error }}{% endfor %}
+            </td>
+        </tr>
+    </table>
+    {{ form.submit }}
+</form>
 {% endblock %}

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Drawing Result</h2>
+<h1>Drawing Result</h1>
+<p>The winner is: {{winner}}</p>
+<div>Go back to <a href="{{ url_for('index') }}">Home Page</a></div>
 {% endblock %}
