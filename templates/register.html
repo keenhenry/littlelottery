@@ -8,18 +8,27 @@
         <tr>
             <td>{{ form.name.label }}</td>
             <td>{{ form.name() }}</td>
-            <td>
+            <td class="error">
             {% for error in form.name.errors %}{{ error }}{% endfor %}
             </td>
         </tr>
         <tr>
             <td>{{ form.email.label }}</td>
             <td>{{ form.email() }}</td>
-            <td>
+            <td class="error">
             {% for error in form.email.errors %}{{ error }}{% endfor %}
             </td>
         </tr>
     </table>
     {{ form.submit }}
 </form>
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class="error">
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+{% endwith %}
 {% endblock %}

@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_wtf import Form
 from wtforms.fields import StringField, SubmitField
 from wtforms.validators import InputRequired, Email, Length
+
+from model import Pool, db_session
+from sqlalchemy import or_
+
 
 # ----------------------------------------------------------- flask configuration
 app = Flask(__name__)
@@ -16,7 +20,7 @@ class RegistrationForm(Form):
     "form object representing registration form"
 
     name = StringField('Name: ', validators=[InputRequired(), Length(min=3, max=60, message='Name must be at least %(min)d and at most %(max)d characters long')])
-    email = StringField('Email: ', validators=[InputRequired(), Email()])
+    email = StringField('Email: ', validators=[InputRequired(), Email(), Length(max=120, message='Email is too long! At most %(max)d characters allowed!')])
     submit = SubmitField('Submit')
 
 
@@ -31,12 +35,23 @@ def index():
 def register():
     "register form handler"
 
-    form = RegistrationForm()
+    form = RegistrationForm() 
     if form.validate_on_submit():
-        # TODO: check if same data already exists in DB
-        # TODO: write to database
+        # verify if the same data already exists in database
+        participant = db_session.query(Pool).filter(or_(Pool.name==form.name.data, Pool.email==form.email.data)).first()
+        if participant:
+            flash('The name or email you gave already exists; please use another name or email.')
+            return redirect(url_for('register'))
+
+        # do a db write
+        player = Pool(name=form.name.data, email=form.email.data, confirmed=False, winner=False)
+        db_session.add(player)
+        db_session.commit()
+
         # store user session
         session['name'] = form.name.data
+
+        # redirect to confirmation page
         return redirect(url_for('confirmation'))
     return render_template('register.html', title='Registration', form=form)
 
@@ -55,6 +70,7 @@ def result():
     "lottery result page handler"
 
     return render_template('result.html', title='Result')
+
 
 # ----------------------------------------------------------- app main entry
 if __name__ == '__main__':
