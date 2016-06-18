@@ -3,11 +3,15 @@
 {% block content %}
 <h1>Welcome To Little Lottery</h1>
 
-<p>
+{% if not open_lottery %}
+<div>
 Fancy giving yourself a little present this month?
 <a href="{{ url_for('register') }}">Register yourself for Little Lottery</a>
-</p>
-<p>
+</div>
+<div>
 Or, you have aleady registered and want to check the <a href="{{ url_for('result') }}">result</a>?
-</p>
+</div>
+{% else %}
+<p>Lottery result is available <a href="{{ url_for('result') }}">here</a>.</p>
+{% endif %}
 {% endblock %}

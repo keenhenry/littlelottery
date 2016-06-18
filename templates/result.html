@@ -2,6 +2,20 @@
 
 {% block content %}
 <h1>Drawing Result</h1>
-<p>The winner is: {{winner}}</p>
+{% if open_lottery %}
+    <p>The winner is: </p>
+    {% if winner %}
+    <table class="winner-list">
+        <tr class="row">
+            <td class="name">{{winner.name}}</td>
+            <td class="email">{{winner.email}}</td>
+        </tr>
+    </table>
+    {% else %}
+    <p>Unfortunately, there are no winners for this draw.</p>
+    {% endif %}
+{% else %}
+    <p>The lottery has not drawn yet, please check the result after: {{ open_time }}</p>
+{% endif %}
 <div>Go back to <a href="{{ url_for('index') }}">Home Page</a></div>
 {% endblock %}
