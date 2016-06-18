@@ -18,8 +18,7 @@ class Pool(Base):
     id = Column(Integer, primary_key = True, nullable = False)
     name = Column(String(60), nullable = False)
     email = Column(String(120), nullable = False)
-    confirmed = Column(Boolean(), nullable = False)
-    winner = Column(Boolean(), nullable = False)
+    winner = Column(Boolean(), nullable = False, default=False)
 
 # establish database connection to SQLite database
 engine = create_engine('sqlite:///lottery.db')

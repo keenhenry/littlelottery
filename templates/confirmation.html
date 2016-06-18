@@ -1,14 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Dear {{name}}, Registration Data Submission Successfully!</h1>
-
-<p>
-Your data was submitted to Little Lottery successfully! However, the registration
-process has not completed yet; to complete it, please go to your email (which you
-specified in the registration) mailbox to click the confirmation link in the email
-sent by Little Lottery to confirm your entry to the lottery.
-</p>
+<h1>Dear {{name}}, Registration Successful!</h1>
 
 <div>Go back to <a href="{{ url_for('index') }}">Home Page</a></div>
 {% endblock %}
