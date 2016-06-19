@@ -21,7 +21,6 @@ FIVE_DAYS_IN_SECONDS = 5*24*60*60
 # ----------------------------------------------------------- flask configuration
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret'
-app.config['WINNER'] = None
 app.config['LOTTERY_OPEN_TIME'] = time.time() + FIVE_DAYS_IN_SECONDS
 
 
@@ -39,13 +38,16 @@ class RegistrationForm(Form):
 def index():
     "home page handler"
 
-    return render_template('index.html', title='Little Lottery', open_lottery=app.config['WINNER'])
+    is_open = (time.time() - app.config['LOTTERY_OPEN_TIME']) >= 0
+    return render_template('index.html', title='Little Lottery', open_lottery=is_open)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     "register form handler"
 
-    if app.config['WINNER']:
+    # do not let users register anymore if lottery result is open already
+    is_open = (time.time() - app.config['LOTTERY_OPEN_TIME']) >= 0
+    if is_open:
         return redirect(url_for('index'))
 
     form = RegistrationForm() 
@@ -82,39 +84,34 @@ def confirmation():
 def result():
     "lottery result page handler"
 
-    now = time.time()
-    if (now - app.config['LOTTERY_OPEN_TIME']) >= 0:
-        if not app.config['WINNER']:
+    is_open = (time.time() - app.config['LOTTERY_OPEN_TIME']) >= 0
+    if is_open:
 
-            # check if winner already exists from database
-            q = db_session.query(Pool).filter(Pool.winner==True)
-            winner_exists = db_session.query(q.exists()).scalar()
+        # check if winner already exists from database
+        q = db_session.query(Pool).filter(Pool.winner==True)
+        winner_exists = db_session.query(q.exists()).scalar()
 
-            if winner_exists:
-                app.config['WINNER'] = q.one()
-                return render_template('result.html',
-                                       title='Result',
-                                       open_lottery=True,
-                                       winner=app.config['WINNER'])
+        if winner_exists:
+            return render_template('result.html',
+                                   title='Result',
+                                   open_lottery=True,
+                                   winner=q.one())
 
-            # winner does not exist, run lottery algorithm to generate the winner
-            pool_size = db_session.query(func.count(Pool.id)).scalar()
-            lottery = LittleLottery(pool_size)
-            try:
-                w = db_session.query(Pool).filter(Pool.id==lottery.draw()).one()
-            except NoResultFound as e:
-                pass
-            else:
-                # winner created, now write to db
-                w.winner = True
-                db_session.commit()
-
-                # cache it in app configuration
-                app.config['WINNER'] = w
+        # winner doesn't exist, run lottery algorithm to generate the winner
+        pool_size = db_session.query(func.count(Pool.id)).scalar()
+        lottery = LittleLottery(pool_size)
+        try:
+            w = db_session.query(Pool).filter(Pool.id==lottery.draw()).one()
+        except NoResultFound as e:
+            pass
+        else:
+            # winner created, now write to db
+            w.winner = True
+            db_session.commit()
         return render_template('result.html',
                                 title='Result',
                                 open_lottery=True,
-                                winner=app.config['WINNER'])
+                                winner=w)
 
     open_time = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(app.config['LOTTERY_OPEN_TIME']))
     return render_template('result.html', title='Result', open_lottery=False, open_time=open_time)
@@ -122,4 +119,4 @@ def result():
 
 # ----------------------------------------------------------- app main entry
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
